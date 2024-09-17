@@ -14,12 +14,17 @@ public class Server implements IServer {
         try {
             serverSocket = new ServerSocket(port);
             connection = serverSocket.accept();
+            System.out.println(receivedMessage+" server");
+            DataOutputStream dos = new DataOutputStream(connection.getOutputStream());
+            dos.writeUTF(getTime()+"");
+            dos.flush();
+            dos.close();
+
 
         } catch (Exception e){
             System.out.println(e);
         }
     }
-
     public void stopServer() throws IOException {
         try {
             serverSocket.close();
@@ -32,6 +37,14 @@ public class Server implements IServer {
 
     public long getTime() {
         // Changez le code ci-dessous pour retourner un long
-        return System.currentTimeMillis();
+        return System.nanoTime();
+    }
+    public static void main(String[] args){
+        Server server = new Server();
+        try {
+            server.startServer(25000);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
