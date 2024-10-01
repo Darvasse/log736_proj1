@@ -26,7 +26,7 @@ public class NetworkSimulator {
         this.type = type;
     }
 
-    public boolean startCommunication(int port) {
+    public boolean startCommunication(Channel channel, int port) {
         if(port < 25000 || port > 26000) { return false;}
         if(servers.containsKey(port)) { return true; }
         
@@ -37,6 +37,7 @@ public class NetworkSimulator {
         boolean isServerStarted = !server.isStopped();
         if(isServerStarted) {
             servers.put(port, server);
+            channels.add(channel);
         }
 
         return isServerStarted;
@@ -65,6 +66,10 @@ public class NetworkSimulator {
     }
 
     public void updateAll() {
+        for(Channel c : channels) {
+            c.update();
+        }
+
         for(Node n : registeredNodes) {
             n.update();
         }
@@ -106,7 +111,11 @@ public class NetworkSimulator {
         public void run() {
             while(!isStopped()) {
                 try {
-                    connection = this.server.accept();
+                    if(connection == null) {
+                        connection = this.server.accept();
+                    } else {
+                        server.accept();
+                    }
                 } catch (IOException e) {
                     if(isStopped()) {
                         System.out.println("Server " + port + ": Stopped.") ;

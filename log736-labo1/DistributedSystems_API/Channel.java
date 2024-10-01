@@ -25,9 +25,8 @@ public class Channel {
         if (MaxActivePorts == ActiveChannels.size()) { return null; }
 
         int port = getAvailablePort();
-        Channel channel = null;
-        if(NetworkSimulator.network.startCommunication(port)) {
-            channel = new Channel();
+        Channel channel = new Channel();
+        if(NetworkSimulator.network.startCommunication(channel, port)) {
             try {
                 channel.client = new Socket("localhost", port);
                 ActiveChannels.put(port, channel);
@@ -62,20 +61,27 @@ public class Channel {
         if(!isOpened()) { return; }
         
         try {
-            InputStream input =  NetworkSimulator.network.getServer(client.getPort()).getInputStream();
-            int availability = input.available(); 
-            if(availability > 0) {
-                String data = new String(input.readNBytes(availability));
-                for(String raw : data.split("\n")) {
-                    Message msg = Message.fromString(raw);
-                    if(!msg.isEmpty()) {
-                        buffer.add(msg);
-                        if(!bySubject.containsKey(msg.getSubject())) {
-                            bySubject.put(msg.getSubject(), new ArrayList<>());
+            int port = client.getPort();
+            Socket server = NetworkSimulator.network.getServer(client.getPort());
+            if(server != null) {
+                InputStream input =  server.getInputStream();
+                int availability = input.available(); 
+                if(availability > 0) {
+                    String data = new String(input.readNBytes(availability));
+                    for(String raw : data.split("\n")) {
+                        Message msg = Message.fromString(raw);
+                        if(!msg.isEmpty()) {
+                            buffer.add(msg);
+                            if(!bySubject.containsKey(msg.getSubject())) {
+                                bySubject.put(msg.getSubject(), new ArrayList<>());
+                            }
+                            bySubject.get(msg.getSubject()).add(msg);
+                            System.out.println("Client " + client.getPort() + " - Read: " + msg.toString()) ;
                         }
-                        bySubject.get(msg.getSubject()).add(msg);
                     }
                 }
+            } else {
+                System.out.println("Client " + client.getPort() + ": Error while reading on update.") ;
             }
         } catch (IOException e) {
                 System.out.println("Client " + client.getPort() + ": Error while reading on update.") ;
@@ -90,6 +96,7 @@ public class Channel {
             OutputStream output = client.getOutputStream();
             output.write((message.toString() + "\n").getBytes());
             output.flush();
+            System.out.println("Client " + client.getPort() + " - Write: " + message.toString()) ;
             return true;
         } catch (IOException e) {
             System.out.println("Client " + client.getPort() + ": Error while sending message.") ;

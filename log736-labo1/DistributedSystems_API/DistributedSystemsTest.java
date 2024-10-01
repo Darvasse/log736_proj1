@@ -10,45 +10,62 @@ public class DistributedSystemsTest {
         Berkeley n2 = new Berkeley();
         Berkeley n3 = new Berkeley();
 
-
         n1.setLeadership(true);
-
-        n1.open();
-        n2.open();
-        n3.open();
         
+        Channel c1 = n1.open();
+        Channel c2 = n2.open();
+        Channel c3 = n3.open();
         
         n1.setTime(n1.getTime() + (long) (Math.random() * 100 - 50));
         n2.setTime(n2.getTime() + (long) (Math.random() * 100 - 50));
         n3.setTime(n3.getTime() + (long) (Math.random() * 100 - 50));
         
-        System.out.println("(Avant Sync) Temps du dirigeant: " + n1.getTime() + "ns");
-        System.out.println("(Avant Sync) Temps de node 2: " + n2.getTime() + "ns");
-        System.out.println("(Avant Sync) Temps de node 3: " + n3.getTime() + "ns");
+        System.out.println("(Avant Sync) Temps du leader: " + n1.getTime() + "ms");
+        System.out.println("(Avant Sync) Temps de node 2: " + n2.getTime() + "ms");
+        System.out.println("(Avant Sync) Temps de node 3: " + n3.getTime() + "ms");
         
+        System.out.println();
+        System.out.println("Leader is requesting time");
         ArrayList<Channel> channels = new ArrayList<>();
-        channels.add(n2.getChannel());
-        channels.add(n3.getChannel());
+        channels.add(c2);
+        channels.add(c3);
         n1.requestTime(channels, 1000);
         
-        //Sending time
+        System.out.println();
+        System.out.println("Clients are reading their respective communication channel");
+        c2.update();
+        c3.update();
+
+        System.out.println();
+        System.out.println("Nodes are responding to the leader's request");
         n2.update();
         n3.update();
 
-        n2.getChannel().update();
-        n3.getChannel().update();
+        System.out.println();
+        System.out.println("Clients are reading their respective communication channel");
+        c2.update();
+        c3.update();
 
         //Receiving time & sending offset
+        System.out.println();
+        System.out.println("Leader is calculating and sending local offset to each client");
         n1.update();
+
+        System.out.println();
+        System.out.println("Clients are reading their respective communication channel");
+        c2.update();
+        c3.update();
         
         // Updating time
+        System.out.println();
+        System.out.println("Nodes are updating their time in correlation to the leader's local offset calculation");
         n2.update();
         n3.update();
 
-
-        System.out.println("(Après Sync) Temps du dirigeant: " + n1.getTime() + "ns (Offset: " + n1.getLastOffset() + "ns)" );
-        System.out.println("(Après Sync) Temps de node 2: " + n2.getTime() + "ns (Offset: " + n2.getLastOffset() + "ns)" );
-        System.out.println("(Après Sync) Temps de node 3: " + n3.getTime() + "ns (Offset: " + n3.getLastOffset() + "ns)" );
+        System.out.println();
+        System.out.println("(Après Sync) Temps du leader: " + n1.getTime() + "ns (Offset: " + n1.getLastOffset() + "ms)" );
+        System.out.println("(Après Sync) Temps de node 2: " + n2.getTime() + "ns (Offset: " + n2.getLastOffset() + "ms)" );
+        System.out.println("(Après Sync) Temps de node 3: " + n3.getTime() + "ns (Offset: " + n3.getLastOffset() + "ms)" );
         
     }
 }

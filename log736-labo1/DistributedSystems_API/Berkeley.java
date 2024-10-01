@@ -23,8 +23,6 @@ public class Berkeley extends Node {
             this.network = network;
             nodeTimes.clear();
             synchronizationThreshold = Math.abs(seuil);
-            time = System.currentTimeMillis();
-            
 
             for (Channel node : this.network) {
                 Message request = new Message();
@@ -86,44 +84,29 @@ public class Berkeley extends Node {
     }
 
     private void processReceivedTime() {
-        // Retreive time from all channels
-
         for(Channel c : network) {
             ArrayList<Message> messages = c.retreiveFromSubject(SendTimeCMD);
             if(!messages.isEmpty()) {
                 nodeTimes.put(c.getUuid(), messages.getLast());
             }
-        }
-
-        /*
-        ArrayList<Message> 
-        for(Socket node : nodes) {
-            if(!nodeTimes.containsKey(node.getLocalPort())) {
-                DataInputStream input = new DataInputStream(node.getInputStream());
-                if(input.available() > 0) {
-                    String[] data = input.readUTF().split(" ");
-                    if(data.length == 2 && data[0] == SendTimeCMD) {
-                        nodeTimes.put(node.getLocalPort(), Long.parseLong(data[1]));
-                    }
-                }
-            }
         } 
-        */  
     }
 
     private void updateSynchronisation() {
         if(nodeTimes.size() == network.size()) {
             long offset = 0;
-            long counted = 0;
+            long counted = 1;
             for(Message message : nodeTimes.values()) {
                 long nodeTime = Long.valueOf(message.getContent());
-                long localOffset = time - nodeTime;
+                long localOffset = nodeTime - time;
                 if (Math.abs(localOffset) <= synchronizationThreshold) {
                     offset += localOffset;
                     ++counted;
                 } 
             }
             offset /= counted;
+            time += offset;
+            this.lastOffset = offset;
             
             for(Channel node : network) {
                 Message received = nodeTimes.get(node.getUuid());
@@ -137,8 +120,6 @@ public class Berkeley extends Node {
                 
                 node.send(sendingOffset);
             }
-            //time += offset;
-            this.lastOffset = offset;
         }
         
     }

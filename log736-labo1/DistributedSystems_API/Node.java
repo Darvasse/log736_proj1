@@ -27,20 +27,18 @@ public class Node {
         return isConnected();
     }
 
-    public void open() {
+    public Channel open() {
         if(!isConnected()) {
             connection = Channel.open();
         }
+        return connection;
     }
 
     public void close() {
         connection = null;
     }
 
-    public void update() {
-        connection.update();
-
-    }
+    public void update() {}
 
     public boolean isConnected() {
         return connection != null && connection.isOpened();
