@@ -16,14 +16,14 @@ public class Berkeley extends Node {
     private HashMap<UUID, Message> nodeTimes = new HashMap<>(); // channel uuid to time
     private ArrayList<Channel> network = new ArrayList<>();
 
-    public Berkeley() {}
+    public Berkeley() { super(); }
 
     public void requestTime(ArrayList<Channel> network, long seuil) {
         if(isLeader) {
             this.network = network;
             nodeTimes.clear();
             synchronizationThreshold = Math.abs(seuil);
-            time = System.nanoTime();
+            time = System.currentTimeMillis();
             
 
             for (Channel node : this.network) {
@@ -37,23 +37,16 @@ public class Berkeley extends Node {
     }
 
     public void update() {
-        /*
+        super.update();
+
         if(isLeader) {
             processReceivedTime();
             updateSynchronisation();
         } else {
-
-
-            String[] data = readClient().split(" ");
-            if(data.length > 0) {
-                switch (data[0]) {
-                    case SendTimeCMD: sendTime(); break;
-                    case SynchronizeTimeCMD: finishSynchronisation(data); break;
-                    default:break;
-                }
-            }
+            sendTime();
+            finishSynchronisation();
         }
-        */
+        
     }
 
     public void setLeadership(boolean isLeader) {
@@ -69,11 +62,14 @@ public class Berkeley extends Node {
     }
 
     private void sendTime() {
-        Message sendingTime = new Message();
-        sendingTime.setSubject(SendTimeCMD);
-        sendingTime.setHeader(uuid.toString());
-        sendingTime.setContent(String.valueOf(time));
-        send(sendingTime);
+        ArrayList<Message> messages = connection.retreiveFromSubject(GetTimeCMD);
+        if(!messages.isEmpty()) {
+            Message sendingTime = new Message();
+            sendingTime.setSubject(SendTimeCMD);
+            sendingTime.setHeader(uuid.toString());
+            sendingTime.setContent(String.valueOf(time));
+            send(sendingTime);
+        }
     }
 
     private void finishSynchronisation() {
@@ -81,8 +77,9 @@ public class Berkeley extends Node {
         for(int i= offsets.size() - 1; i >= 0; --i) {
             Message msg = offsets.get(i);
             if(msg.getHeader().equals(uuid.toString())) {
-                long offset = Long.valueOf(msg.getContent());
-                time += offset;
+                this.lastOffset = Long.valueOf(msg.getContent());
+                time += lastOffset;
+
                 break;
             }
         }
@@ -140,9 +137,13 @@ public class Berkeley extends Node {
                 
                 node.send(sendingOffset);
             }
-            time += offset;
+            //time += offset;
             this.lastOffset = offset;
         }
         
+    }
+
+    public long getLastOffset() {
+        return lastOffset;
     }
 }

@@ -20,6 +20,7 @@ public class NetworkSimulator {
     private SimulationType type = SimulationType.Sync;
     private ArrayList<Channel> channels = new ArrayList<>();
     private HashMap<Integer, ServerTask> servers = new HashMap<>();
+    private ArrayList<Node> registeredNodes = new ArrayList<>();
 
     public void setSimulationType(SimulationType type) {
         this.type = type;
@@ -64,9 +65,13 @@ public class NetworkSimulator {
     }
 
     public void updateAll() {
-        for(Channel c : channels) {
-            c.update();
+        for(Node n : registeredNodes) {
+            n.update();
         }
+    }
+
+    public void register(Node n) {
+        registeredNodes.add(n);
     }
 
     public Socket getServer(int port) {

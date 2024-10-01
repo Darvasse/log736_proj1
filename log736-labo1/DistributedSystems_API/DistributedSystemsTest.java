@@ -1,26 +1,54 @@
 package DistributedSystems_API;
 
+import java.util.ArrayList;
+
 public class DistributedSystemsTest {
     
 
     public static void main(String[] args) {
-        Channel channel = Channel.open();
+        Berkeley n1 = new Berkeley();
+        Berkeley n2 = new Berkeley();
+        Berkeley n3 = new Berkeley();
 
-        Message m = new Message();
-        m.setSubject("Testing");
-        m.setHeader("this is a header");
-        m.setContent("bla bla bla");
 
-        channel.send(m);
-        channel.update();
+        n1.setLeadership(true);
 
-        for(Message msg : channel.retreiveAll()) {
-            System.out.println("Received:" + msg.toString());
-        }
+        n1.open();
+        n2.open();
+        n3.open();
+        
+        
+        n1.setTime(n1.getTime() + (long) (Math.random() * 100 - 50));
+        n2.setTime(n2.getTime() + (long) (Math.random() * 100 - 50));
+        n3.setTime(n3.getTime() + (long) (Math.random() * 100 - 50));
+        
+        System.out.println("(Avant Sync) Temps du dirigeant: " + n1.getTime() + "ns");
+        System.out.println("(Avant Sync) Temps de node 2: " + n2.getTime() + "ns");
+        System.out.println("(Avant Sync) Temps de node 3: " + n3.getTime() + "ns");
+        
+        ArrayList<Channel> channels = new ArrayList<>();
+        channels.add(n2.getChannel());
+        channels.add(n3.getChannel());
+        n1.requestTime(channels, 1000);
+        
+        //Sending time
+        n2.update();
+        n3.update();
 
-        channel.close();
+        n2.getChannel().update();
+        n3.getChannel().update();
 
-        System.out.println("So?");
+        //Receiving time & sending offset
+        n1.update();
+        
+        // Updating time
+        n2.update();
+        n3.update();
+
+
+        System.out.println("(Après Sync) Temps du dirigeant: " + n1.getTime() + "ns (Offset: " + n1.getLastOffset() + "ns)" );
+        System.out.println("(Après Sync) Temps de node 2: " + n2.getTime() + "ns (Offset: " + n2.getLastOffset() + "ns)" );
+        System.out.println("(Après Sync) Temps de node 3: " + n3.getTime() + "ns (Offset: " + n3.getLastOffset() + "ns)" );
         
     }
 }

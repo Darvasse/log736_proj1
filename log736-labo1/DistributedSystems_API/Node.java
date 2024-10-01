@@ -8,7 +8,9 @@ public class Node {
     protected final UUID uuid = UUID.randomUUID();
 
 
-    public Node() {}
+    public Node() {
+        NetworkSimulator.network.register(this);
+    }
 
 
     public boolean connect(Channel channel) {
