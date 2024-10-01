@@ -7,6 +7,6 @@ public interface IServer {
 
     public void stopServer() throws java.io.IOException;
 
-    public long getTime();
+    public Long getTime();
 
 }
