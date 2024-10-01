@@ -1,6 +1,7 @@
 package DistributedSystems_API;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Message {
     
@@ -11,6 +12,9 @@ public class Message {
     private String subject;
     private String header;
     private String content;
+
+    private UUID from;
+    private UUID to;
 
     public Message() {}
 
@@ -47,7 +51,7 @@ public class Message {
 
 
     public boolean isEmpty() {
-        return this.content.isEmpty();
+        return header.isEmpty() && content.isEmpty();
     }
 
     public void setSubject(String subject) {

@@ -2,6 +2,7 @@ package DistributedSystems_API;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 import java.io.*;
 import java.net.Socket;
 import java.util.PriorityQueue;
@@ -17,7 +18,8 @@ public class Channel {
 
     private Socket client = null;
     private ArrayList<Message> buffer = new ArrayList<>();
-
+    private HashMap<String, ArrayList<Message>> bySubject = new HashMap<>();
+    private final UUID uuid = UUID.randomUUID();
 
     public static Channel open() {
         if (MaxActivePorts == ActiveChannels.size()) { return null; }
@@ -68,6 +70,10 @@ public class Channel {
                     Message msg = Message.fromString(raw);
                     if(!msg.isEmpty()) {
                         buffer.add(msg);
+                        if(!bySubject.containsKey(msg.getSubject())) {
+                            bySubject.put(msg.getSubject(), new ArrayList<>());
+                        }
+                        bySubject.get(msg.getSubject()).add(msg);
                     }
                 }
             }
@@ -106,8 +112,16 @@ public class Channel {
         return messages;
     }
 
+    public ArrayList<Message> retreiveFromSubject(String subject) {
+        return bySubject.getOrDefault(subject, new ArrayList<>());
+    }
+
     public boolean isOpened() {
         return client != null && client.isConnected();
+    }
+
+    public UUID getUuid() {
+        return uuid;
     }
 
     private static boolean isValidPort(int port) {
