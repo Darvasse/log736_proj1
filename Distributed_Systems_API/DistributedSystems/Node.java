@@ -6,8 +6,10 @@ public class Node {
     
     protected final UUID uuid = UUID.randomUUID();
 
-    public Node() {
-        API.register(this);
+    public Node() {}
+
+    public boolean connect() {
+        return API.register(this);
     }
 
     public void receive(Message message) {

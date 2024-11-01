@@ -19,12 +19,13 @@ class API {
         instance.network.simulate();
     }
 
-    public static void register(Node node) {
-        instance.network.register(node);
+    public static boolean register(Node node) {
+        return instance.network.connect(node) != null;
     }
 
-    public static void send(Message msg) {
-        instance.network.send(msg);
+    public static void send(Message msg, UUID destination) {
+        msg.setDestination(destination);
+        instance.network.send(msg, destination);
     }
 
 }

@@ -4,9 +4,11 @@ import java.util.UUID;
 
 public class Message {
     
-    private static final String SubjectTitle = "subject";
-    private static final String HeaderTitle = "header";
-    private static final String ContentTitle = "content";
+    private static final String SubjectTag = "subject";
+    private static final String HeaderTag = "header";
+    private static final String ContentTag = "content";
+    private static final String SourceTag = "from";
+    private static final String DestinationTag = "to";
 
     private UUID from;
     private UUID to;
@@ -30,43 +32,21 @@ public class Message {
         logicalTimestamp = timestamp;
     }
 
-    public String toString() {
-        return Formatter.toString(this);
-    }
+    public String toString() { return Formatter.toString(this); }
+    public boolean isEmpty() { return header.isEmpty() && content.isEmpty(); }
 
-    public boolean isEmpty() {
-        return header.isEmpty() && content.isEmpty();
-    }
+    // Getters and Setters
+    public void setTo(UUID to) { this.to = to; }
+    public UUID getTo() { return to; }
+    public void setFrom(UUID from) { this.from = from; }
+    public UUID getFrom() { return from; }
+    public void setTimestamp(long timestamp) { logicalTimestamp = timestamp; }
+    public long getTimestamp() { return logicalTimestamp; }
 
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public String getHeader() {
-        return header;
-    }
-
-    public void setHeader(String header) {
-        this.header = header;
-    }
-
-    public long getTimestamp() {
-        return logicalTimestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        logicalTimestamp = timestamp;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
+    public void setSubject(String subject) { this.subject = subject; }
+    public String getSubject() { return subject; }
+    public void setHeader(String header) { this.header = header; }
+    public String getHeader() { return header; }
+    public void setContent(String content) { this.content = content; }
+    public String getContent() { return content; }
 }

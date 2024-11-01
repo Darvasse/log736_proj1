@@ -8,20 +8,40 @@ import java.net.SocketAddress;
 
 
 class NetworkServer extends Thread {
-    private     final int           port;
-    private     ServerSocket        server                  = null;
-    protected   Socket              connectionToSimulator   = null;
-    protected   ArrayList<Message>  buffer                  = new ArrayList<>();
+    private final int port;
+    private ServerSocket server = null;
+    protected Socket connectionToSimulator = null;
+    protected PriorityQueue<Message> buffer = new PriorityQueue<>();
+    protected Node node = null;
 
-    private NetworkServer(int port) {
+    private NetworkServer(Node n, int port) {
         this.port = port;
+        this.node = n;
         open();
     }
 
-    public ArrayList<Message> retreive() {
-        ArrayList<Message> messages = buffer;
-        buffer = new ArrayList<>();
-        return messages;
+    public synchronized void flush() {
+        for(Message msg : buffer) {
+            node.receive(msg);
+        }
+        buffer.clear();
+    }
+
+    public synchronized void retreive(int count) {
+        if(count < 0 || count > buffer.size()) { flush(); return; }
+        else {
+            for(int c = 0; c < count; ++c) {
+                node.receive(buffer.poll());
+            }
+        }
+    }
+
+    public Socket getConnection() {
+        return connectionToSimulator;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
@@ -74,7 +94,7 @@ class NetworkServer extends Thread {
         }
     }
 
-    private void update() {
+    protected void update() {
         if(connectionToSimulator == null) { return; }
 
         InputStream input =  connectionToSimulator.getInputStream();
@@ -85,18 +105,18 @@ class NetworkServer extends Thread {
                 Message msg = Message.fromString(raw);
                 if(!msg.isEmpty()) {
                     msg.setTimestamp(requestTimeStamp());
-                    buffer.add(msg);
-                    if(!bySubject.containsKey(msg.getSubject())) {
-                        bySubject.put(msg.getSubject(), new ArrayList<>());
+
+                    synchronized(this) {
+                        buffer.add(msg);
                     }
-                    bySubject.get(msg.getSubject()).add(msg);
-                    System.out.println("Client " + client.getPort() + " - Read: " + msg.toString()) ;
+                    
+                    System.out.println("Client " + port + " - Read: " + msg.toString()) ;
                 }
             }
         }
     }
 
-    static private long requestTimeStamp() {
+    static protected long requestTimeStamp() {
         static long timestamp = 0;
         static ReentrantLock lock = new ReentrantLock();
 
