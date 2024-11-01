@@ -8,7 +8,7 @@ public class Node {
 
     public Node() {}
 
-    public boolean connect() {
+    public boolean register() {
         return API.register(this);
     }
 
