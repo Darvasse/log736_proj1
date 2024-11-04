@@ -1,6 +1,9 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
-
-class ExternalNode extends Node {
+public class ExternalNode extends Node {
 
     private InetSocketAddress address;
     private Socket externalConnnection;

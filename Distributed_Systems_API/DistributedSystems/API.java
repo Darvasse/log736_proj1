@@ -1,5 +1,8 @@
 
 // This class is a facade for the NetworkSimulator class. It is a singleton
+
+import java.util.UUID;
+
 class API {
 
     private NetworkSimulator network;
@@ -8,7 +11,7 @@ class API {
     private static API instance = new API();
 
     private API() {
-        network = new NetworkSimulator();
+        network = new NetworkSimulator(BasePort, 1000);
     }
 
     public static void setSimulationType(NetworkSimulator.SimulationType type) {
@@ -24,8 +27,12 @@ class API {
     }
 
     public static void send(Message msg, UUID destination) {
-        msg.setDestination(destination);
-        instance.network.send(msg, destination);
+        msg.setTo(destination);
+        instance.network.unicast(destination, msg);
+    }
+
+    public static void broadcast(Message msg) {
+        instance.network.broadcast(msg);
     }
 
 }

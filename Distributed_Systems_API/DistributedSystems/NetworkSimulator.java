@@ -1,3 +1,12 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.PriorityQueue;
+import java.util.Random;
+import java.util.UUID;
+import java.util.stream.IntStream;
+
 public class NetworkSimulator {
     
 
@@ -10,7 +19,7 @@ public class NetworkSimulator {
     private final int MaxActivePorts;
     private PriorityQueue<Integer> availablePorts;
     private SimulationType type = SimulationType.Sync;
-    private NetworkSimulatorServer simulatorServer;
+    private NetworkServer simulatorServer;
     // Each server is associated with a node managing its communication
     private HashMap<UUID, NetworkServer> servers = new HashMap<>();
 
@@ -22,15 +31,15 @@ public class NetworkSimulator {
                 IntStream.rangeClosed(BasePort + 1, BasePort + MaxActivePorts).boxed().toList()
             );
 
-        simulatorServer = new NetworkServer(new NetworkSimulatorNode(), BasePort);
+        simulatorServer = new NetworkServer(new SimulatorNode(), BasePort);
     }
 
 // Node interactions
 
-    public int connect(Node n) {
-        int port = getAvailablePort();
+    public Integer connect(Node n) {
+        Integer port = getAvailablePort();
         if(port != null) {
-            servers.put(n.getUUID(), new NetworkServer(n, port));
+            servers.put(n.getUuid(), new NetworkServer(n, port));
             
         }
         return port;
@@ -107,8 +116,8 @@ public class NetworkSimulator {
      private void updateAll() {
         for(NetworkServer server : servers.values()) {
             switch (type) {
-                case Sync:  server.retrieve(-1);    break;
-                case Async: server.retrieve(1);     break;
+                case Sync:  server.retreive(-1);    break;
+                case Async: server.retreive(1);     break;
             }
         }
     }
@@ -117,26 +126,21 @@ public class NetworkSimulator {
         switch (type) {
             case Sync: {
                 for(NetworkServer server : servers.values()) {
-                    server.retrieve(1);
+                    server.retreive(1);
                 }
                 break;
             }
             case Async: {
                 int index = new Random().nextInt(servers.size());
-                NetworkServer randomServer = servers.get(servers.keySet().toList().get(index));
-                simulatorServer.retrieve(1);
+                NetworkServer randomServer = servers.get(servers.keySet().toArray()[index]);
+                randomServer.retreive(1);
                 break;
             }
         }
     }
 
 // Private methods
-
-    private boolean isValidPort(int port) {
-        return port > BasePort && port < BasePort + MaxActivePorts;
-    }
-
-    private int getAvailablePort() {
+    private Integer getAvailablePort() {
         return availablePorts.isEmpty() ? null : availablePorts.poll();  
     }
 

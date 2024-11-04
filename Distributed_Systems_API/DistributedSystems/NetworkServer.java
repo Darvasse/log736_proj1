@@ -1,11 +1,12 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
+import java.util.PriorityQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
-
+// Handle message sending before that connectionToSimulator is allocated
+// Add a function to create the Socket before Thread starts
 
 class NetworkServer extends Thread {
     private final int port;
@@ -14,7 +15,7 @@ class NetworkServer extends Thread {
     protected PriorityQueue<Message> buffer = new PriorityQueue<>();
     protected Node node = null;
 
-    private NetworkServer(Node n, int port) {
+    public NetworkServer(Node n, int port) {
         this.port = port;
         this.node = n;
         open();
@@ -56,10 +57,15 @@ class NetworkServer extends Thread {
             } while(!isConnected);
 
             // Accept simulator connection
-            connectionToSimulator = server.accept();   
+            try {
+                connectionToSimulator = server.accept();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }   
             
             // continously read from the server
-            while(!interrupted() && server != null) {
+            while(!interrupted() && server != null && connectionToSimulator != null) {
                 update();
             }
 
@@ -72,11 +78,13 @@ class NetworkServer extends Thread {
         try {
             server = new ServerSocket(port);
             // connectionToSimulator should be null
+            return true;
         } catch (IOException e) {
             server = null;
             
             System.out.println("Server " + port + ": Error opening server.") ;
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -97,33 +105,39 @@ class NetworkServer extends Thread {
     protected void update() {
         if(connectionToSimulator == null) { return; }
 
-        InputStream input =  connectionToSimulator.getInputStream();
-        int availability = input.available(); 
-        if(availability > 0) {
-            String data = new String(input.readNBytes(availability));
-            for(String raw : data.split("\n")) {
-                Message msg = Message.fromString(raw);
-                if(!msg.isEmpty()) {
-                    msg.setTimestamp(requestTimeStamp());
-
-                    synchronized(this) {
-                        buffer.add(msg);
+        InputStream input;
+        try {
+            input = connectionToSimulator.getInputStream();
+            int availability = input.available(); 
+            if(availability > 0) {
+                String data = new String(input.readNBytes(availability));
+                for(String raw : data.split("\n")) {
+                    Message msg = Message.BasicFormatter.fromString(raw);
+                    if(!msg.isEmpty()) {
+                        msg.setTimestamp(requestTimeStamp());
+    
+                        synchronized(this) {
+                            buffer.add(msg);
+                        }
+                        
+                        System.out.println("Client " + port + " - Read: " + msg.toString()) ;
                     }
-                    
-                    System.out.println("Client " + port + " - Read: " + msg.toString()) ;
                 }
             }
+        } catch (IOException e) {
+            System.out.println("Server " + port + ": Error reading from server.");
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
+    static private long TimeStampCounter = 0;
+    static private ReentrantLock TimeStampLock = new ReentrantLock();
     static protected long requestTimeStamp() {
-        static long timestamp = 0;
-        static ReentrantLock lock = new ReentrantLock();
-
         long time = -1;
-        lock.lock();
-        time = timestamp++;
-        lock.unlock();
+        TimeStampLock.lock();
+        time = TimeStampCounter++;
+        TimeStampLock.unlock();
 
         return time;
     }
