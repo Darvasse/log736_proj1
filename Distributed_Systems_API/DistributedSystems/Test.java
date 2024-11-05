@@ -2,6 +2,13 @@
 
 public class Test {
     public static void main(String[] args) {
+        //Pour tester Paxos
+        //Vous devez créer au moins un leader et autant d'accepteur que vous souhaitez
+        //Le leader se register et les accepteurs se register avec le leader ou les leaders en paramètre
+        //Ensuite vous pouvez envoyer des messages en utilisant la même démarche que si dessous
+        //Vous pouvez aussi terminer un accepteur ou un leader en utilisant la méthode terminate
+        //Chaque tour (envoie de message) s'effectue grâce à la méthode simulate
+        
         PaxosNode leader = new PaxosNode();
         PaxosNode acceptor1 = new PaxosNode();
         PaxosNode acceptor2 = new PaxosNode();
@@ -31,6 +38,7 @@ public class Test {
 
         System.out.println("----- Round 3 ----- ");
         API.simulate();
+        acceptor3.terminate();
 
         System.out.println("----- Round 4 ----- ");
         API.simulate();

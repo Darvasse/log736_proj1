@@ -19,8 +19,11 @@ public class PaxosNode extends Node {
     private long promisedThreshold = 0;
     private long acceptedThreshold = 2;
     private Integer value = null;
+    private boolean isTerminated = false;
 
-
+    public void terminate() {
+        this.isTerminated=true;
+    }
     public boolean register( PaxosNode... leader) {
         if(super.register()) {
             for(PaxosNode node : leader)
@@ -42,6 +45,7 @@ public class PaxosNode extends Node {
      */
     @Override
     public void receive(Message message) {
+        if(isTerminated) return;
         switch(message.getSubject()) {
             case RequestCommand:  request(message); break;
             case PrepareCommand:  prepare(message); break;
