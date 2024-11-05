@@ -2,7 +2,7 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class Message {
+public class Message implements Comparable<Message> {
 
     public static final MessageFormatter BasicFormatter = new MessageFormatter() {
 
@@ -104,6 +104,11 @@ public class Message {
         header = other.header;
         content = other.content;
         formatter = other.formatter;
+    }
+
+    @Override
+    public int compareTo(Message o) {
+        return (int) (logicalTimestamp - o.logicalTimestamp);
     }
 
     public String toString() { 

@@ -45,6 +45,10 @@ class NetworkServer extends Thread {
         return port;
     }
 
+    public boolean isOpen() {
+        return server != null && !server.isClosed() && connectionToSimulator != null && !connectionToSimulator.isClosed();
+    }
+
     @Override
     public void run() {
         do {
@@ -65,7 +69,7 @@ class NetworkServer extends Thread {
             }   
             
             // continously read from the server
-            while(!interrupted() && server != null && connectionToSimulator != null) {
+            while(!interrupted() && isOpen()) {
                 update();
             }
 

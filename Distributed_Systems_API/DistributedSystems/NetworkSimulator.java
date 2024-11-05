@@ -1,5 +1,6 @@
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.PriorityQueue;
@@ -22,6 +23,7 @@ public class NetworkSimulator {
     private NetworkServer simulatorServer;
     // Each server is associated with a node managing its communication
     private HashMap<UUID, NetworkServer> servers = new HashMap<>();
+    private HashMap<UUID, Socket> clients = new HashMap<>();
 
 
     public NetworkSimulator(int basePort, int maxActivePorts) {
@@ -39,39 +41,47 @@ public class NetworkSimulator {
     public Integer connect(Node n) {
         Integer port = getAvailablePort();
         if(port != null) {
-            servers.put(n.getUuid(), new NetworkServer(n, port));
-            
+            NetworkServer server = new NetworkServer(n, port);
+            server.start();
+            Socket client = new Socket();
+
+            try {
+                client.connect(new InetSocketAddress(port), 1000);
+                servers.put(n.getUuid(), server);
+                clients.put(n.getUuid(), client);
+            } catch (IOException e) {
+                port = null;
+            }
         }
         return port;
     }
 
     public void unicast(UUID destination, Message msg) {
-        if(!servers.containsKey(destination)) {
+        if(!clients.containsKey(destination)) {
             System.out.println("Destination not found.");
             return;
         }
 
-        NetworkServer server = servers.get(destination); 
-
+        Socket client = clients.get(destination);
         try {
-            Socket connection = server.getConnection();
-            PrintWriter out = new PrintWriter(connection.getOutputStream(), true);
-            out.print(msg.toString());
+            OutputStream output = client.getOutputStream();
+            output.write((msg.toString() + "\n").getBytes());
+            output.flush();
         } catch (IOException e) {
-            System.out.println("Error sending message in port " + server.getPort());
+            System.out.println("Error sending message in port " + client.getPort());
             e.printStackTrace();
 
         }
     }
 
     public void broadcast(Message msg) {
-        for(NetworkServer server : servers.values()) {
+        for(Socket client : clients.values()) {
             try {
-                Socket connection = server.getConnection();
-                PrintWriter out = new PrintWriter(connection.getOutputStream(), true);
-                out.print(msg.toString());
+                OutputStream output = client.getOutputStream();
+                output.write((msg.toString() + "\n").getBytes());
+                output.flush();
             } catch (IOException e) {
-                System.out.println("Error sending message in port " + server.getPort());
+                System.out.println("Error sending message in port " + client.getPort());
                 e.printStackTrace();
             }
         }
