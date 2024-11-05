@@ -3,6 +3,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.UUID;
@@ -109,8 +110,11 @@ public class NetworkSimulator {
 
     public void broadcast(Message msg) {
         msg.setTimestamp(requestTimeStamp());
-        
-        for(Socket client : clients.values()) {
+
+        for(Map.Entry<UUID, Socket> destination : clients.entrySet()) {
+            if(destination.getKey() == msg.getFrom()) { continue; }
+
+            Socket client = destination.getValue();
             try {
                 OutputStream output = client.getOutputStream();
                 output.write((msg.toString() + "\n").getBytes());
