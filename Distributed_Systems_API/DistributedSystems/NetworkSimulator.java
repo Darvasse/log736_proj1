@@ -8,6 +8,36 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
+/**
+ * The NetworkSimulator class simulates a network environment where nodes can connect and communicate with each other.
+ * It supports both synchronous and asynchronous simulation types.
+ * 
+ * <p>Features:</p>
+ * <ul>
+ *   <li>Manages network servers and clients.</li>
+ *   <li>Supports unicast and broadcast messaging.</li>
+ *   <li>Simulates network interactions either synchronously or asynchronously.</li>
+ * </ul>
+ * 
+ * <p>Usage:</p>
+ * <pre>
+ * {@code
+ * NetworkSimulator simulator = new NetworkSimulator(basePort, maxActivePorts);
+ * simulator.setSimulationType(NetworkSimulator.SimulationType.Async);
+ * simulator.simulate(10);
+ * }
+ * </pre>
+ * 
+ * <p>Note:</p>
+ * <ul>
+ *   <li>Ensure that the base port and maximum active ports are properly configured.</li>
+ *   <li>Handle exceptions during network operations appropriately.</li>
+ * </ul>
+ * 
+ * @see NetworkServer
+ * @see Node
+ * @see Message
+ */
 public class NetworkSimulator {
     
 
@@ -26,6 +56,7 @@ public class NetworkSimulator {
     private HashMap<UUID, Socket> clients = new HashMap<>();
 
 
+    
     public NetworkSimulator(int basePort, int maxActivePorts) {
         BasePort = basePort;
         MaxActivePorts = maxActivePorts;
@@ -124,20 +155,24 @@ public class NetworkSimulator {
     }
 
      private void updateAll() {
+        lockServers();
         for(NetworkServer server : servers.values()) {
             switch (type) {
                 case Sync:  server.retreive(-1);    break;
                 case Async: server.retreive(1);     break;
             }
         }
+        unlockServers();
     }
 
     private void updateOne() {
         switch (type) {
             case Sync: {
+                lockServers();
                 for(NetworkServer server : servers.values()) {
                     server.retreive(1);
                 }
+                unlockServers();
                 break;
             }
             case Async: {
@@ -154,4 +189,17 @@ public class NetworkSimulator {
         return availablePorts.isEmpty() ? null : availablePorts.poll();  
     }
 
+    private void lockServers() {
+        for(NetworkServer server : servers.values()) {
+            server.lock();
+        }
+    }
+
+    private void unlockServers() {
+        for(NetworkServer server : servers.values()) {
+            server.unlock();
+        }
+    }
+
 }
+
