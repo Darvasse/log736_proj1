@@ -55,6 +55,11 @@ public class Node {
         return true;
     }
 
+    public void broadcast(Message message) {
+        message.setFrom(uuid);
+        API.broadcast(message);
+    }
+
     /**
      * Gets the unique identifier of the node.
      * 

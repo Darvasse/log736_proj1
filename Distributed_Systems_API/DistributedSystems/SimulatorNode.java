@@ -7,19 +7,11 @@ import java.net.InetSocketAddress;
 public class SimulatorNode extends Node {
 
     /**
-     * The action string for connection messages.
+     * Accepted actions' subject
      */
-    public static final String ConnectionAction = "connect";
-
-    /**
-     * The action string for unicast messages.
-     */
-    private static final String UnicastAction = "unicast";
-
-    /**
-     * The action string for broadcast messages.
-     */
-    private static final String BroadcastAction = "broadcast";
+    public static final String ConnectionCommand = "connect";
+    public static final String UnicastCommand = "unicast";
+    public static final String BroadcastCommand = "broadcast";
 
     /**
      * Receives a message and processes it based on its subject.
@@ -29,9 +21,9 @@ public class SimulatorNode extends Node {
     @Override
     public void receive(Message message) {
         switch(message.getSubject()) {
-            case ConnectionAction:  handleConnection(message); break;
-            case UnicastAction:     API.send(message, message.getTo()); break;
-            case BroadcastAction:   API.broadcast(message); break;
+            case ConnectionCommand:  handleConnection(message); break;
+            case UnicastCommand:     API.send(message, message.getTo()); break;
+            case BroadcastCommand:   API.broadcast(message); break;
         }
     }
 
@@ -46,7 +38,7 @@ public class SimulatorNode extends Node {
         ExternalNode external = new ExternalNode(externalAddress);
         if(external.isConnected()) {
             Message response = new Message();
-            response.setSubject(ConnectionAction);
+            response.setSubject(ConnectionCommand);
             if(external.register()) {
                 response.setHeader("Success");
                 response.setContent(external.getUuid().toString());

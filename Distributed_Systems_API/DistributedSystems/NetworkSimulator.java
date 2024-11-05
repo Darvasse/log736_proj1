@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.IntStream;
 
 /**
@@ -93,6 +94,7 @@ public class NetworkSimulator {
             return;
         }
 
+        msg.setTimestamp(requestTimeStamp());
         Socket client = clients.get(destination);
         try {
             OutputStream output = client.getOutputStream();
@@ -106,6 +108,8 @@ public class NetworkSimulator {
     }
 
     public void broadcast(Message msg) {
+        msg.setTimestamp(requestTimeStamp());
+        
         for(Socket client : clients.values()) {
             try {
                 OutputStream output = client.getOutputStream();
@@ -201,5 +205,29 @@ public class NetworkSimulator {
         }
     }
 
+    /**
+     * Counter for generating unique timestamps.
+     */
+    static private long TimeStampCounter = 0;
+
+    /**
+     * Lock for synchronizing access to the timestamp counter.
+     */
+    static private ReentrantLock TimeStampLock = new ReentrantLock();
+    /**
+     * Requests a unique timestamp for a message.
+     *
+     * @return a unique timestamp
+     */
+    
+    static protected long requestTimeStamp() {
+        long time = -1;
+        TimeStampLock.lock();
+        time = TimeStampCounter++;
+        TimeStampLock.unlock();
+
+        return time;
+    }
+    
 }
 

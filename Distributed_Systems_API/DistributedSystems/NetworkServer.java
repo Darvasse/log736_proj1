@@ -205,8 +205,6 @@ class NetworkServer extends Thread {
                 for (String raw : data.split("\n")) {
                     Message msg = Message.BasicFormatter.fromString(raw);
                     if (!msg.isEmpty()) {
-                        msg.setTimestamp(requestTimeStamp());
-
                         buffer.add(msg);
 
                         System.out.println("Client " + port + " - Read: " + msg.toString());
@@ -219,27 +217,5 @@ class NetworkServer extends Thread {
         }
     }
 
-    /**
-     * Counter for generating unique timestamps.
-     */
-    static private long TimeStampCounter = 0;
-
-    /**
-     * Lock for synchronizing access to the timestamp counter.
-     */
-    static private ReentrantLock TimeStampLock = new ReentrantLock();
-    /**
-     * Requests a unique timestamp for a message.
-     *
-     * @return a unique timestamp
-     */
     
-    static protected long requestTimeStamp() {
-        long time = -1;
-        TimeStampLock.lock();
-        time = TimeStampCounter++;
-        TimeStampLock.unlock();
-
-        return time;
-    }
 }
