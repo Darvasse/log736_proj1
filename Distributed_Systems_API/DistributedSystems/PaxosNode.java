@@ -17,15 +17,21 @@ public class PaxosNode extends Node {
     private static ArrayList<PaxosNode> ConnectedNodes = new ArrayList<>();
     private static long ProposalCount = 0;
     private long promisedThreshold = 0;
+    private long acceptedThreshold = 2;
     private Integer value = null;
 
-    @Override
-    public boolean register() {
+
+    public boolean register( PaxosNode... leader) {
         if(super.register()) {
-            ConnectedNodes.add(this);
+            for(PaxosNode node : leader)
+                node.connectNode(this);
             return true;
         }
         return false;
+    }
+    public void connectNode(PaxosNode node) {
+        ConnectedNodes.add(node);
+        acceptedThreshold = (ConnectedNodes.size() / 2)+1;
     }
 
 
@@ -47,53 +53,63 @@ public class PaxosNode extends Node {
     }
 
     private void request(Message msg) {
+        System.out.println("Node " + " received request: " + msg.toString());
+        promisedThreshold = 0;
         ProposalCount++;
         Message prepare = new Message();
         prepare.setSubject(PrepareCommand);
         prepare.setHeader(String.valueOf(ProposalCount));
         prepare.setContent(msg.getContent());
         prepare.setTo(msg.getFrom());
-        API.broadcast(prepare);
+        prepare.setFrom(getUuid());
+        broadcast(prepare);
+        System.out.println("Node " + " sent prepare: " + prepare.toString());
     }
 
     private void prepare(Message msg) {
+        System.out.println("Node " + " received prepare: " + msg.toString());
         int proposal = Integer.parseInt(msg.getHeader());
-        if(proposal > promisedThreshold) {
-            promisedThreshold = proposal;
+        if(proposal >= ProposalCount) {
+            ProposalCount = proposal;
             Message promise = new Message();
             promise.setSubject(PromiseCommand);
             promise.setHeader(String.valueOf(proposal));
-            promise.setContent(value != null ? value.toString() : "");
+            promise.setContent(msg.getContent());
             promise.setTo(msg.getFrom());
+            promise.setFrom(getUuid());
             API.send(promise, msg.getFrom());
+            System.out.println("Node " + getUuid() + " sent promise: " + promise.toString());
         }
     }
 
     private void accept(Message msg) {
         int proposal = Integer.parseInt(msg.getHeader());
-        if(proposal >= promisedThreshold) {
-            promisedThreshold = proposal;
+        if(proposal >= ProposalCount) {
+            ProposalCount = proposal;
             value = Integer.parseInt(msg.getContent());
             Message learn = new Message();
             learn.setSubject(LearnCommand);
             learn.setHeader(String.valueOf(proposal));
             learn.setContent(value.toString());
+            learn.setFrom(getUuid());
+            learn.setTo(msg.getFrom());
             API.broadcast(learn);
+            System.out.println("Node " + getUuid() + " sent learn: " + learn.toString());
         }
     }
 
     private void promise(Message msg) {
-        int proposal = Integer.parseInt(msg.getHeader());
-        if(proposal == ProposalCount) {
-            int acceptedValue = msg.getContent().isEmpty() ? 0 : Integer.parseInt(msg.getContent());
-            if(acceptedValue > value) {
-                value = acceptedValue;
-            }
+        promisedThreshold++;
+        if(acceptedThreshold <= promisedThreshold){
+            promisedThreshold=0;
             Message accept = new Message();
             accept.setSubject(AcceptCommand);
-            accept.setHeader(String.valueOf(proposal));
-            accept.setContent(value.toString());
-            API.broadcast(accept);
+            accept.setHeader(msg.getHeader());
+            accept.setContent(msg.getContent());
+            accept.setTo(msg.getFrom());
+            accept.setFrom(getUuid());
+            broadcast(accept);
+            System.out.println("Node " + getUuid() + " sent accept: " + accept.toString());
         }
     }
 
@@ -101,6 +117,7 @@ public class PaxosNode extends Node {
         int proposal = Integer.parseInt(msg.getHeader());
         if(proposal == ProposalCount) {
             value = Integer.parseInt(msg.getContent());
+            System.out.println("Node " + getUuid() + " learned value: " + value);
         }
     }   
 
