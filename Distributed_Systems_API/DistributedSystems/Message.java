@@ -22,6 +22,7 @@ public class Message implements Comparable<Message> {
          */
         private static String[] sanitizeMessage(String[] terms) {
             for(int i = 0; i < terms.length; ++i) {
+                if(terms[i] == null) { continue;}
                 String term = terms[i].trim();
                 term = term.replaceAll("\\~", "");
                 term = term.replaceAll("\\|", "");
@@ -95,7 +96,9 @@ public class Message implements Comparable<Message> {
             message.from = UUID.fromString(terms[2]);
             message.to = UUID.fromString(terms[3]);
             message.header = terms[4];
-            message.content = terms[5];
+            if(terms.length == 6) {
+                message.content = terms[5];
+            }
             return message;
         }
 
@@ -175,6 +178,9 @@ public class Message implements Comparable<Message> {
     public Message(MessageFormatter format, long timestamp) {
         formatter = format;
         logicalTimestamp = timestamp;
+        subject = new String();
+        header = new String();
+        content = new String();
     }
 
     /**

@@ -114,6 +114,7 @@ public class NetworkSimulator {
         for(Map.Entry<UUID, Socket> destination : clients.entrySet()) {
             if(destination.getKey() == msg.getFrom()) { continue; }
 
+            msg.setTo(destination.getKey());
             Socket client = destination.getValue();
             try {
                 OutputStream output = client.getOutputStream();

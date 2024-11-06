@@ -1,7 +1,39 @@
-
-
-public class Test {
+public class TestPat {
     public static void main(String[] args) {
+        raftElectionTest();
+        System.out.println("Test completed.");
+        System.exit(0);
+    }
+
+    public static void raftElectionTest() {
+        RaftNode node1 = new RaftNode();
+        RaftNode node2 = new RaftNode();
+        RaftNode node3 = new RaftNode();
+
+        node1.register();
+        node2.register();
+        node3.register();
+
+        API.setSimulationType(NetworkSimulator.SimulationType.Async);
+        int simulationRound = 0;
+        while(simulationRound < 10) {
+            System.out.println("----- Round " + simulationRound + " ----- ");
+            API.simulate();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            simulationRound++;
+        }
+    }
+
+    public static void raftOperationTest() {
+        
+    }
+
+    
+    public static void testPaxos() {
         //Pour tester Paxos
         //Vous devez créer au moins un leader et autant d'accepteur que vous souhaitez
         //Le leader se register et les accepteurs se register avec le leader ou les leaders en paramètre
@@ -68,8 +100,27 @@ public class Test {
 
         System.out.println("----- Round 10 ----- ");
         API.simulate();
+    }
+    
+    public static void basicTest() {
+        Node node1 = new Node();
+        Node node2 = new Node();
+        node1.register();
+        node2.register();
 
+        Message msg = new Message();
+        msg.setSubject("test");
+        msg.setHeader("Houston we have a problem!");
+        msg.setContent("Hello, World!");
+        msg.setTo(node2.getUuid());
+        node1.send(msg);
 
+        System.out.println("----- Round 1 ----- ");
 
+        API.simulate();
+
+        System.out.println("----- Round 2 ----- ");
+
+        API.simulate();
     }
 }

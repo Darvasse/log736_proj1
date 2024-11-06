@@ -33,7 +33,7 @@ public class Node {
 
         if(!message.getSubject().equalsIgnoreCase("answer")) {
             Message response = new Message();
-            response.setSubject("answer");
+            response.setSubject("AKN");
             response.setHeader("Message received!");
             response.setContent(message.getHeader() + " /// " + message.getContent());
             response.setTo(message.getFrom());

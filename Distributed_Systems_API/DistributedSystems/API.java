@@ -21,11 +21,19 @@ class API {
     }
 
     /**
-     * Starts the network simulation.
+     * Simulate one round of communication.
      */
     public static void simulate() {
         instance.network.simulate();
     }
+
+    /**
+     * Simulate one iteration of communication.
+     */
+    public static void simulateOnce() {
+        instance.network.simulateOnce();
+    }
+
 
     /**
      * Registers a node with the network simulator.

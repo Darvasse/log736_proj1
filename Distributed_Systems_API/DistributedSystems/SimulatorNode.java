@@ -22,8 +22,8 @@ public class SimulatorNode extends Node {
     public void receive(Message message) {
         switch(message.getSubject()) {
             case ConnectionCommand:  handleConnection(message); break;
-            case UnicastCommand:     API.send(message, message.getTo()); break;
-            case BroadcastCommand:   API.broadcast(message); break;
+            case UnicastCommand:     send(message); break;
+            case BroadcastCommand:   broadcast(message); break;
         }
     }
 
