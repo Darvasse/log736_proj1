@@ -34,7 +34,7 @@ public class RaftNode extends Node{
     private int value = 0;
     private UUID votedFor = null;
     private UUID leader = null;
-    private ArrayList<UUID> clientsUuid = null;
+    private ArrayList<UUID> clientsUuid = new ArrayList<>();
     private ArrayList<Message> logs = new ArrayList<>();
     private ArrayList<HashSet<UUID>> approuvals = new ArrayList<>();
     private int commitedIndex = -1;
@@ -59,6 +59,10 @@ public class RaftNode extends Node{
             return true;
         }
         return false;
+    }
+
+    public int getValue() {
+        return value;
     }
 
     /**
@@ -177,6 +181,7 @@ public class RaftNode extends Node{
     }
 
     private void respondVote(Message message) {
+        System.out.println("Client " + getUuid() + " received vote request: " + message.toString());
         String header = message.getHeader();
         String[] parts = header.substring(1, header.length() - 1).split("/");
         if(parts.length != 2) { return; }
@@ -395,7 +400,6 @@ public class RaftNode extends Node{
         requestVote.setSubject(RequestVoteCommand);
         requestVote.setHeader("[" + ProposeVoteAction + "/" + term + "]");
         requestVote.setContent(uuid.toString());
-
         broadcast(requestVote);
 
         // Reset election timer

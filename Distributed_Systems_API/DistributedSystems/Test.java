@@ -1,6 +1,6 @@
-public class TestPat {
+public class Test {
     public static void main(String[] args) {
-        raftElectionTest();
+        raftOperationTest();
         System.out.println("Test completed.");
         System.exit(0);
     }
@@ -29,7 +29,53 @@ public class TestPat {
     }
 
     public static void raftOperationTest() {
-        
+        RaftNode node1 = new RaftNode();
+        RaftNode node2 = new RaftNode();
+        RaftNode node3 = new RaftNode();
+
+        node1.register();
+        node2.register();
+        node3.register();
+
+        API.setSimulationType(NetworkSimulator.SimulationType.Async);
+        System.out.println("----- Simulating until leader's stability (10 rounds) ----- ");
+        int simulationRound = 0;
+        while(simulationRound < 10) {
+            System.out.println("----- Round " + simulationRound + " ----- ");
+            API.simulate();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            simulationRound++;
+        }
+
+        Node client = new Node();
+        client.register();
+        Message msg = new Message();
+        msg.setSubject(RaftNode.ClientCommand);
+        msg.setHeader(RaftNode.SetAction);
+        msg.setContent("10");
+        msg.setTo(node1.getUuid());
+
+        client.send(msg);
+        System.out.println("----- Simulating until client's request is processed (10 rounds) ----- ");
+        while (simulationRound < 20) {
+            System.out.println("----- Round " + simulationRound + " ----- ");
+            API.simulate();
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            simulationRound++;
+        }
+
+        System.out.println("----- Value in each node ----- ");
+        System.out.println("    Node 1: " + node1.getValue());
+        System.out.println("    Node 2: " + node2.getValue());
+        System.out.println("    Node 3: " + node3.getValue());
     }
 
     

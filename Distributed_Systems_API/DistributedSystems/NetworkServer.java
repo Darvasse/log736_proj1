@@ -200,7 +200,7 @@ class NetworkServer extends Thread {
             input = connectionToSimulator.getInputStream();
             int availability = input.available();
             if (availability > 0) {
-                System.out.println("Server " + port + " - Reading " + availability + " bytes.");
+                //System.out.println("Server " + port + " - Reading " + availability + " bytes.");
                 String data = new String(input.readNBytes(availability));
                 for (String raw : data.split("\n")) {
                     Message msg = Message.BasicFormatter.fromString(raw);

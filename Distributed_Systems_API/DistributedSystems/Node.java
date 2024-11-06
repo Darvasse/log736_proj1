@@ -30,15 +30,6 @@ public class Node {
      */
     public void receive(Message message) {
         System.out.println("Node " + uuid + " received message: " + message.toString());
-
-        if(!message.getSubject().equalsIgnoreCase("answer")) {
-            Message response = new Message();
-            response.setSubject("AKN");
-            response.setHeader("Message received!");
-            response.setContent(message.getHeader() + " /// " + message.getContent());
-            response.setTo(message.getFrom());
-            send(response);
-        }
     }
     
     /**

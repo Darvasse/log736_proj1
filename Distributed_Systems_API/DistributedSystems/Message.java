@@ -95,7 +95,9 @@ public class Message implements Comparable<Message> {
             message.subject = terms[1];
             message.from = UUID.fromString(terms[2]);
             message.to = UUID.fromString(terms[3]);
-            message.header = terms[4];
+            if(terms.length >= 5) {
+                message.header = terms[4];
+            }
             if(terms.length == 6) {
                 message.content = terms[5];
             }
