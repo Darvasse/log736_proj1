@@ -374,6 +374,7 @@ public class RaftNode extends Node{
     private void acknowledge(Message message) {
         String header = message.getHeader();
         String[] parts = header.substring(1, header.length() - 1).split("/");
+        System.out.println("[" + uuid.toString() + "] Acknowledging: " + message.toString());
         if(parts.length != 4) { return; }
         int leaderLastCommitedTerm = Integer.parseInt(parts[2]);
         int leaderLastCommitedIndex = Integer.parseInt(parts[3]);

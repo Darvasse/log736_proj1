@@ -1,6 +1,6 @@
 public class Test {
     public static void main(String[] args) {
-        raftOperationTest();
+        raftElectionTest();
         System.out.println("Test completed.");
         System.exit(0);
     }
